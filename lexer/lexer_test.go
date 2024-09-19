@@ -2,10 +2,9 @@ package lexer
 
 import (
 	// "go/token"
-	"go/token"
 	"testing"
 
-	"Conan_Interpreter/token"
+	"github.com/deepdesperate/Conan_Interpreter/token"
 )
 
 func TestNextToken(t *testing.T) {
@@ -32,11 +31,11 @@ func TestNextToken(t *testing.T) {
 		tok:=l.NextToken()
 
 		if tok.Type != tt.expectedType {
-			t.Fatalf("tests[%d]-tokentype wrong.expected=%q,got=$q", i,&tt.expectedType,tok.Type)
+			t.Fatalf("tests[%d]-tokentype wrong.expected=%q,got=%q", i,tt.expectedType,tok.Type)
 		}
 
-		if tok.Lietral!=tt.expectedLiteral{
-			t.Fatalf("tests[%d]-literal wrong.expected=%q,got=%q",i,tt.expectedLiteral,tok.Lietral)
+		if tok.Literal!=tt.expectedLiteral{
+			t.Fatalf("tests[%d]-literal wrong.expected=%q,got=%q",i,tt.expectedLiteral,tok.Literal)
 		}
 	}
 }

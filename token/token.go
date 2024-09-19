@@ -4,7 +4,7 @@ type TokenType string
 
 type Token struct {
 	Type TokenType
-	Lietral string
+	Literal string
 }
 
 const(

@@ -1,9 +1,6 @@
 package lexer
 
-import (
-	"Conan_interpreter/token"
-	"go/token"
-)
+import "github.com/deepdesperate/Conan_Interpreter/token"
 
 func(l*Lexer) NextToken()token.Token{
 	var tok token.Token
@@ -26,7 +23,7 @@ func(l*Lexer) NextToken()token.Token{
 	case '}':
 		tok = newToken(token.RBRACE,l.ch)
 	case 0:
-		tok.literal = ""
+		tok.Literal = ""
 		tok.Type = token.EOF
 	}
 
