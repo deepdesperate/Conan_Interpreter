@@ -72,6 +72,7 @@ func(l*Lexer) NextToken()token.Token{
 	return tok
 }
 
+
 func (l*Lexer)peekChar() byte{
 	if l.readPosition >= len(l.input){
 		return 0
@@ -80,8 +81,9 @@ func (l*Lexer)peekChar() byte{
 	}
 }
 
+
 func (l*Lexer)skipWhitespace() {
-	for l.ch == ' '||l.ch == '\t'|| l.ch =='\n'|| l.ch == '\r'{
+	for l.ch == ' '||l.ch == '\t'|| l.ch =='\n'|| l.ch == '\r' {
 		l.readChar()
 	}
 }
