@@ -7,6 +7,7 @@ import(
 	"github.com/deepdesperate/Conan_Interpreter/lexer"
 	"github.com/deepdesperate/Conan_Interpreter/parser"
 	"github.com/deepdesperate/Conan_Interpreter/evaluator"
+	"github.com/deepdesperate/Conan_Interpreter/object"
 
 )
 
@@ -18,6 +19,7 @@ const CONAN_FACE = `
 
 func Start(in io.Reader, out io.Writer){
 	scanner := bufio.NewScanner(in)
+	env := object.NewEnvironment()
 	for {
 		fmt.Fprintf(out, PROMPT)
 		scanned := scanner.Scan()
@@ -36,7 +38,7 @@ func Start(in io.Reader, out io.Writer){
 			continue
 		}
 
-		evaulated := evaluator.Eval(program)
+		evaulated := evaluator.Eval(program, env)
 		if evaulated != nil {
 			io.WriteString(out, evaulated.Inspect())
 			io.WriteString(out,"\n")
