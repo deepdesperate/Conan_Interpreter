@@ -87,6 +87,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object{
 			return args[0]
 		}
 		return applyFunction(function, args)
+		
+	case *ast.StringLiteral:
+		return &object.String{Value: node.Value}
 
 	} 
 
@@ -175,17 +178,25 @@ func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 }
 
 func evalInfixExpression( operator string, left object.Object, right object.Object) object.Object {
+	
 	switch {
 	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
 		return evalIntegerInfixExpression(operator, left, right)
+
+	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+		return evalStringInfixExpression(operator, left, right)
+
 	case operator == "==":
 		// these works 
 		// because they always points to our defined TRUE and FALSE vars 
 		return nativeBoolToBooleanObject(left == right)
+
 	case operator == "!=":
 		return nativeBoolToBooleanObject(left != right)
+
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
+
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
@@ -215,6 +226,25 @@ func evalIntegerInfixExpression(operator string, left object.Object, right objec
 	default:
 		return newError("unknown operator: %s %s %s",left.Type(), operator, right.Type())
 	}
+}
+
+func evalStringInfixExpression(operator string, left object.Object , right object.Object) object.Object{
+	leftVal := left.(*object.String).Value
+	rightVal := right.(*object.String).Value
+
+	switch operator{
+	case "+":
+		return &object.String{Value: leftVal + rightVal}
+	case "==":
+		return nativeBoolToBooleanObject( leftVal == rightVal)
+	case "!=":
+		return nativeBoolToBooleanObject( leftVal != rightVal)
+	default:
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+	}
+
+	// TODO: Add support for more String operators if needed
+
 }
 
 func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object{
