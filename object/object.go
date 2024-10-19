@@ -21,7 +21,7 @@ const (
 	STRING_OBJ = "STRING"
 	BUILTIN_OBJ = "BUILTIN"
 	ARRAY_OBJ = "ARRAY"
-	HASH_OBJ = "HASh"
+	HASH_OBJ = "HASH"
 )
 
 type Object interface{
@@ -29,8 +29,8 @@ type Object interface{
 	Inspect() string
 }
 
-type Hahsable interface{
-	Hashkey() HashKey
+type Hashable interface{
+	HashKey() HashKey
 }
 
 type Integer struct {
