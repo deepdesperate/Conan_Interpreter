@@ -440,33 +440,33 @@ func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 
 }
 
-// func(p*Parser) parseCallArguments() []ast.Expression {
-// 	args := []ast.Expression{}
+func(p*Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{}
 
-// 	if p.peekTokenIs(token.RPAREN){
-// 		p.nextToken()
-// 		return args
-// 	}
+	if p.peekTokenIs(token.RPAREN){
+		p.nextToken()
+		return args
+	}
 
-// 	p.nextToken()
+	p.nextToken()
 
-// 	a:= p.parseExpression(LOWEST)
-// 	args = append(args, a)
+	a:= p.parseExpression(LOWEST)
+	args = append(args, a)
 
-// 	for p.peekTokenIs(token.COMMA){
-// 		p.nextToken()
-// 		p.nextToken()
+	for p.peekTokenIs(token.COMMA){
+		p.nextToken()
+		p.nextToken()
 
-// 		args = append(args, p.parseExpression(LOWEST))
-// 	}
+		args = append(args, p.parseExpression(LOWEST))
+	}
 
-// 	if !p.expectPeek(token.RPAREN){
-// 		return nil
-// 	}
+	if !p.expectPeek(token.RPAREN){
+		return nil
+	}
 
-// 	return args
+	return args
 
-// }
+}
 
 func (p *Parser) parseStringLiteral() ast.Expression {
 	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
