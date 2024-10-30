@@ -2,8 +2,6 @@ package ast
 
 import (
 	"testing"
-
-	"github.com/deepdesperate/Conan_Interpreter"
 	"github.com/deepdesperate/Conan_Interpreter/token"
 )
 
