@@ -4,10 +4,10 @@ import(
 	"bufio"
 	"fmt"
 	"io"
+	"github.com/deepdesperate/Conan_Interpreter/compiler"
 	"github.com/deepdesperate/Conan_Interpreter/lexer"
 	"github.com/deepdesperate/Conan_Interpreter/parser"
-	"github.com/deepdesperate/Conan_Interpreter/evaluator"
-	"github.com/deepdesperate/Conan_Interpreter/object"
+	"github.com/deepdesperate/Conan_Interpreter/vm"
 
 )
 
@@ -19,8 +19,7 @@ const CONAN_FACE = `
 
 func Start(in io.Reader, out io.Writer){
 	scanner := bufio.NewScanner(in)
-	env := object.NewEnvironment()
-	macroEnv := object.NewEnvironment()
+	
 	for {
 		fmt.Fprintf(out, PROMPT)
 		scanned := scanner.Scan()
@@ -39,14 +38,26 @@ func Start(in io.Reader, out io.Writer){
 			continue
 		}
 
-		evaluator.DefineMacros(program, macroEnv)
-		expanded := evaluator.ExpandMacros(program, macroEnv)
+		comp := compiler.New()
+		err := comp.Compile(program)
 
-		evaulated := evaluator.Eval(expanded, env)
-		if evaulated != nil {
-			io.WriteString(out, evaulated.Inspect())
-			io.WriteString(out,"\n")
-		}	
+		if err != nil {
+			fmt.Fprintf(out, "Woops! Compilation failed:\n %s\n", err)
+			continue
+		}
+
+		machine := vm.New(comp.Bytecode())
+		err = machine.Run()
+		if err != nil {
+			fmt.Fprintf(out, "Woops! Executing bytecode failed:\n %s\n", err)
+			continue
+		}
+
+		stackTop := machine.StackTop()
+		
+		io.WriteString(out, stackTop.Inspect())
+		io.WriteString(out, "\n")
+
 	}
 }
 
@@ -54,6 +65,7 @@ func printParseErrors(out io.Writer, errors []string){
 	io.WriteString(out, CONAN_FACE)
 	io.WriteString(out, "Whoops! We ran into some mystery here! \n")
 	io.WriteString(out,"parse erros: \n")
+
 	for _,msg := range errors{
 		io.WriteString(out, "\t"+msg+"\n")
 	}
