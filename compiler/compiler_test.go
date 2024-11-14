@@ -25,6 +25,7 @@ func TestIntegerArithmetic(t *testing.T) {
 			expectedInstructions: 	[]code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
+				code.Make(code.OpAdd),
 			},
 		},
 	}
@@ -36,6 +37,7 @@ func runCompilerTests(t *testing.T, tests []compilerTestCase) {
 	t.Helper()
 
 	for _, tt := range tests {
+
 		program := parse(tt.input)
 		compiler := New()
 
@@ -50,6 +52,7 @@ func runCompilerTests(t *testing.T, tests []compilerTestCase) {
 		if err != nil {
 			t.Fatalf("testInstructions failed: %s", err)
 		}
+
 		err = testConstants(t, tt.expectedConstants, bytecode.Constants)
 		if err != nil {
 			t.Fatalf("testConstants failed: %s", err)
@@ -65,8 +68,8 @@ func parse(input string) *ast.Program {
 }
 
 func testInstructions(
-	expected 	[]code.Instructions,
-	actual 		code.Instructions,
+	expected 		[]code.Instructions,
+	actual 			code.Instructions,
 ) error {
 	concatted := concatInstructions(expected)
 
