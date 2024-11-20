@@ -2,18 +2,20 @@ package compiler
 
 import (
 	"fmt"
-
+	"sort"
 	"github.com/deepdesperate/Conan_Interpreter/ast"
 	"github.com/deepdesperate/Conan_Interpreter/code"
 	"github.com/deepdesperate/Conan_Interpreter/object"
 )
 
 type Compiler struct {
-	instructions 	code.Instructions
-	constants		[]object.Object
+	instructions 		code.Instructions
+	constants			[]object.Object
 
 	lastInstruction		EmittedInstruction
 	previousInstruction	EmittedInstruction
+
+	symbolTable 		*SymbolTable
 }
 
 type Bytecode struct {
@@ -33,10 +35,18 @@ func New() *Compiler{
 
 		lastInstruction: 		EmittedInstruction{},
 		previousInstruction: 	EmittedInstruction{},
-	}
 
+		symbolTable: 			NewSymbolTable(),	
+	}
 }
 
+func NewWithState(s *SymbolTable, constants []object.Object) *Compiler {
+	compiler := New()
+	compiler.symbolTable = s
+	compiler.constants = constants
+
+	return compiler
+}
 
 func (c *Compiler) Compile(node ast.Node) error {
 	switch node := node.(type) {
@@ -185,12 +195,81 @@ func (c *Compiler) Compile(node ast.Node) error {
 		integer := &object.Integer{Value: node.Value}
 		c.emit(code.OpConstant, c.addConstant(integer))
 
+	case *ast.StringLiteral:
+		str := &object.String{Value: node.Value}
+		c.emit(code.OpConstant, c.addConstant(str))
+
 	case *ast.Boolean:
 		if node.Value{
 			c.emit(code.OpTrue)
 		}else{
 			c.emit(code.OpFalse)
 		}
+
+	case *ast.LetStatement:
+		err := c.Compile(node.Value)
+		if err != nil {
+			return err
+		}
+
+		symbol := c.symbolTable.Define(node.Name.Value)
+		c.emit(code.OpSetGlobal, symbol.Index)
+
+	case *ast.Identifier:
+		symbol, ok := c.symbolTable.Resolve(node.Value)
+		if !ok {
+			// Compiler time error sending
+			return fmt.Errorf("undefined variable %s", node.Value)
+		}
+
+		c.emit(code.OpGetGlobal, symbol.Index)
+
+	case *ast.ArrayLiteral:
+		for _, el := range node.Elements{
+			err := c.Compile(el)
+			if err != nil {
+				return err
+			}
+		}
+
+		c.emit(code.OpArray, len(node.Elements))
+
+	case *ast.HashLiteral:
+		keys := []ast.Expression{}
+
+		for k := range node.Pairs{
+			keys = append(keys, k)
+		}
+
+		sort.Slice(keys, func(i, j int) bool{
+			return keys[i].String() < keys[j].String()
+		})
+
+		for _, k := range keys{
+			err := c.Compile(k)
+
+			if err != nil {
+				return err
+			}
+
+			err = c.Compile(node.Pairs[k])
+			if err != nil {
+				return err
+			}
+		}
+		c.emit(code.OpHash, len(node.Pairs) * 2)
+
+	case *ast.IndexExpression:
+		err := c.Compile(node.Left)
+		if err != nil{
+			return err
+		}
+
+		err = c.Compile(node.Index)
+		if err != nil {
+			return err
+		}
+		c.emit(code.OpIndex)
 
 	}
 
@@ -257,3 +336,4 @@ func (c *Compiler) changeOperand(opPos int, operand int) {
 
 	c.replaceInstruction(opPos, newInstruction)
 }
+
