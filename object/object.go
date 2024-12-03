@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"github.com/deepdesperate/Conan_Interpreter/ast"
+	"github.com/deepdesperate/Conan_Interpreter/code"
 	"strings"
 )
 
@@ -24,6 +25,7 @@ const (
 	HASH_OBJ = "HASH"
 	QUOTE_OBJ = "QUOTE"
 	MACRO_OBJ = "MACRO"
+	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION_OBJ"
 )
 
 type Object interface{
@@ -214,4 +216,14 @@ func (m *Macro) Inspect() string {
 	out.WriteString("\n}")
 	return out.String()
 
+}
+
+type CompiledFunction struct {
+	Instructions code.Instructions
+}
+
+func (cf *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTION_OBJ }
+
+func (cf *CompiledFunction) Inspect() string {
+	return fmt.Sprintf("CompiledFunction[%p]", cf)
 }
