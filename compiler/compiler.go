@@ -39,10 +39,15 @@ func New() *Compiler{
 		lastInstruction: 		EmittedInstruction{},
 		previousInstruction: 	EmittedInstruction{},
 	}
+	symbolTable := NewSymbolTable()
+
+	for i, v := range object.Builtins{
+		symbolTable.DefineBuiltin(i, v.Name)
+	}
 
 	return &Compiler{
 		constants: 				[]object.Object{},
-		symbolTable: 			NewSymbolTable(),	
+		symbolTable: 			symbolTable,
 		scopes: 				[]CompilationScope{mainScope},
 		scopeIndex: 			0,
 	}
@@ -234,11 +239,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return fmt.Errorf("undefined variable %s", node.Value)
 		}
 
-		if symbol.Scope == GlobalScope {
-			c.emit(code.OpGetGlobal, symbol.Index)
-		} else{
-			c.emit(code.OpGetLocal, symbol.Index)
-		}
+		c.loadSymbol(symbol)
 
 	case *ast.ArrayLiteral:
 		for _, el := range node.Elements{
@@ -308,8 +309,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpReturn)
 		}
 
+		freeSymbols := c.symbolTable.FreeSymbols
 		numLocals := c.symbolTable.numDefinitions
 		instructions := c.leaveScope()
+
+		for _, s := range freeSymbols{
+			c.loadSymbol(s)
+		}
 
 		compiledFn := &object.CompiledFunction{
 			Instructions: instructions,
@@ -317,7 +323,8 @@ func (c *Compiler) Compile(node ast.Node) error {
 			NumParameters: len(node.Parameters),
 		}
 
-		c.emit(code.OpConstant, c.addConstant(compiledFn))
+		fnIndex := c.addConstant(compiledFn)
+		c.emit(code.OpClosure, fnIndex, len(freeSymbols))
 
 	case *ast.ReturnStatement:
 		err := c.Compile(node.ReturnValue)
@@ -455,4 +462,21 @@ func (c *Compiler) replaceLastPopWithReturn() {
 	c.replaceInstruction(lastPos, code.Make(code.OpReturnValue))
 
 	c.scopes[c.scopeIndex].lastInstruction.Opcode = code.OpReturnValue
+}
+
+func (c *Compiler) loadSymbol(s Symbol) {
+	switch s.Scope{
+	case GlobalScope:
+		c.emit(code.OpGetGlobal, s.Index)
+		
+	case LocalScope:
+		c.emit(code.OpGetLocal, s.Index)
+
+	case BuiltinScope:
+		c.emit(code.OpGetBuiltin, s.Index)
+
+	case FreeScope:
+		c.emit(code.OpGetFree, s.Index)
+
+	}
 }
