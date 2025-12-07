@@ -37,4 +37,4 @@ Conan_Interpreter is a general-purpose compiler for conan language, similar to C
 The compiler and virtual machine architecture significantly improves performance over the original tree-walking interpreter. Based on a recursive Fibonacci computation benchmark, the VM implementation is measured to be about 3.3 times faster compared to tree-walking interpreter.
 
 ## Preview
-![ConanInterpreter](docs/Preview/Conan_Interpreter.mov)
+![ConanInterpreter](docs/Preview/ConanInterpreter.mp4)
